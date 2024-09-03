@@ -1,7 +1,6 @@
 import json
 import numpy as np
 import streamlit as st
-import faiss
 import openai
 import re
 import os
@@ -24,10 +23,9 @@ for item in embedded_data:
     vectors.append(np.array(item['임베딩']))
     metadatas.append({"요약": item["요약"], "세부인정사항": item["세부인정사항"]})
 
-# FAISS 인덱스 생성 (벡터의 크기에 맞게 초기화)
-dimension = len(vectors[0])  # 벡터의 차원 수를 가져옵니다.
-index = faiss.IndexFlatL2(dimension)  # L2 거리 기반의 FAISS 인덱스를 생성합니다.
-index.add(np.array(vectors))  # 벡터들을 FAISS 인덱스에 추가합니다.
+# 코사인 유사도를 계산하는 함수
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 # Streamlit UI 구성
 st.title("Medical Insurance Determination with OpenAI")
@@ -37,13 +35,14 @@ if st.button("Analyze"):
     if user_input.strip():
         # 쿼리 텍스트를 임베딩 벡터로 변환
         response = openai.Embedding.create(input=user_input, model="text-embedding-ada-002")
-        query_embedding = np.array(response['data'][0]['embedding']).reshape(1, -1)
+        query_embedding = np.array(response['data'][0]['embedding'])
 
-        # FAISS 인덱스를 사용해 유사한 문서 검색
-        D, I = index.search(query_embedding, k=5)
-        
+        # 코사인 유사도를 사용해 가장 유사한 벡터를 찾음
+        similarities = [cosine_similarity(query_embedding, vector) for vector in vectors]
+        top_k_indices = np.argsort(similarities)[-5:][::-1]  # 상위 5개 유사도를 가진 인덱스를 가져옵니다.
+
         # 검색 결과에서 메타데이터 가져오기
-        similar_docs = [metadatas[i] for i in I[0]]
+        similar_docs = [metadatas[i] for i in top_k_indices]
 
         # GPT를 통한 연관성 평가
         items = ""
@@ -63,7 +62,7 @@ if st.button("Analyze"):
             max_tokens=150,
             temperature=0.3,
         )
-        
+
         full_response = response['choices'][0]['message']['content'].strip()
 
         relevant_results = []

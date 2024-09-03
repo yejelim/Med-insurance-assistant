@@ -1,6 +1,7 @@
 # My precious data
 *.json
 secrets.toml
+Secrets.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

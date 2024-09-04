@@ -39,7 +39,7 @@ def main():
     st.header("S3에서 임베딩 데이터 로드 및 추출")
 
     # AWS S3 설정 입력
-    bucket_name = st.text_input("S3 버킷 이름", "your-bucket-name")
+    bucket_name = st.text_input("S3 버킷 이름", "hemochat-rag-database")
     file_key = st.text_input("파일 키", "18_aga_tagged_embedded_data.json")
 
     # 데이터를 로드하고 벡터와 메타데이터 추출

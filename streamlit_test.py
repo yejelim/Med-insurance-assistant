@@ -29,6 +29,60 @@ def main():
     # 제목 설정
     st.title("RAG 기반 LLM 모델 테스트")
 
+    # 사용자 정보 입력
+    st.subheader("환영합니다. 어떤 분야에 종사하시나요?")
+    occupation = st.radio(
+        "직업을 선택하세요:",
+        options=["의사", "간호사", "병원내 청구팀", "기타"],
+        index=0
+    )
+
+    # '기타'를 선택하면 입력란 표시
+    if occupation == "기타":
+        other_occupation = st.text_input("직업을 입력해주세요:")
+
+    # 의료인인 경우 분과 선택
+    if occupation in ["의사", "간호사"]:
+        st.subheader("의료인이라면 어떤 분과에 재직 중인지 알려주세요.")
+        department = st.selectbox(
+            "분과를 선택하세요:",
+            options=[
+                "가정의학부 (Family Medicine, FM)",
+                "관상동맥질환 집중치료실 (Coronary Care Unit, CCU)",
+                "내과 (Internal Medicine, IM)",
+                "내과계 중환자실 (Medical Intensive Care Unit, MICU)",
+                "내분비내과 (Endocrinology, ED)",
+                "마취과 (Anesthesiology, AN)",
+                "분만실 (Delivery Room, DR)",
+                "비뇨기과 (Urology, URO)",
+                "산부인과 (Obstetrics/Gynecology, OB/GY)",
+                "성형외과 (Plastic Surgery, PS)",
+                "소아과 (Pediatrics, PD)",
+                "소화기내과 (Gastrointestinal Medicine, GI)",
+                "수술실 (Operating Room, OR)",
+                "신경과 (Neurology, NR)",
+                "신경외과 (Neuro-Surgery, NS)",
+                "신경정신과 (Neuro-Psychiatry, NP)",
+                "신생아중환자실 (Neonatal Intensive Care Unit, NICU)",
+                "신장내과 (Nephrology, NH)",
+                "심장내과 (Cardiovascular Medicine, CV)",
+                "안과 (Ophthalmology, OPH(PT))",
+                "외과계중환자실 (Surgical Intensive Care Unit, SICU)",
+                "응급처치부 (Emergency Service, ER)",
+                "이비인후과 (Ear, Nose & Throat, ENT)",
+                "일반외과 (General Surgery, GS)",
+                "정신과 (Psychiatry, PY)",
+                "정형외과 (Orthopedic Surgery, OS)",
+                "중환자실 (Intensive Care Unit, ICU)",
+                "치과 (Dentistry, DN)",
+                "피부과 (Dermatology, DM)",
+                "혈액종양학과 (Hematology-Oncology, HO)",
+                "회복실 (Postanasthesia Care Unit, PACU)",
+                "흉부내과 (Chest Medicine, CM)",
+                "흉부외과 (Chest Surgery, CS)"
+            ]
+        )
+
     # 텍스트 입력창
     user_input = st.text_input("여기에 텍스트를 입력하세요:")
 

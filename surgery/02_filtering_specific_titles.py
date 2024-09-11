@@ -24,7 +24,7 @@ for item in merged_data:
             })
 
 # 여러 키워드 값들 (키워드 리스트)
-keywords = ["개념", "피부염"]  # 키워드 리스트
+keywords = ["트리글리세라이드", "콜레스테롤", "혈류량", "초음파 검사", "다245", "전산화단층", "CT", "자기공명영상진단", "Angiograpy", "혈관조영술", "2가지 이상","동일 피부", "Arterial", "정맥포트법", "혈전제거술", "자205", "단단문합술", "혈관성형술"]  # 키워드 리스트
 
 # pandas로 변환하여 데이터프레임으로 처리
 df = pd.DataFrame(data)
@@ -40,5 +40,5 @@ filtered_df.drop_duplicates(subset=["항목", "제목", "세부인정사항"], i
 print(filtered_df)
 
 # pandas DataFrame을 CSV로 저장 (필요 시)
-# filtered_df.to_csv('filtered_titles_with_keywords.csv', index=False)
-# print("CSV 파일로 저장 완료")
+filtered_df.to_csv('vascular_filtered_criterion.csv', index=False)
+print("CSV 파일로 저장 완료")

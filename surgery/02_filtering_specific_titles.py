@@ -23,21 +23,22 @@ for item in merged_data:
                 "세부인정사항": entry["세부인정사항"]
             })
 
-# 여러 specific_value 값들
-specific_values = ["주 2회의 개념", "화장품으로 인한 피부 과민반응으로 접촉성피부염이 생긴 경우 급여여부"]  # 여러 관심 있는 제목 값
-
-# "제목" 값이 specific_values 목록에 있는 항목들만 필터링
-filtered_data = [item for item in data if item["제목"] in specific_values]
+# 여러 키워드 값들 (키워드 리스트)
+keywords = ["개념", "피부염"]  # 키워드 리스트
 
 # pandas로 변환하여 데이터프레임으로 처리
-df = pd.DataFrame(filtered_data)
+df = pd.DataFrame(data)
+
+# 키워드를 기준으로 필터링
+# 키워드 리스트 중 하나라도 포함된 제목을 찾음 (대소문자 구분 없음)
+filtered_df = df[df['제목'].str.contains('|'.join(keywords), case=False, na=False)]
 
 # 중복된 행 제거
-df.drop_duplicates(subset=["항목", "제목", "세부인정사항"], inplace=True)
+filtered_df.drop_duplicates(subset=["항목", "제목", "세부인정사항"], inplace=True)
 
 # 데이터프레임 확인
-print(df)
+print(filtered_df)
 
 # pandas DataFrame을 CSV로 저장 (필요 시)
-# df.to_csv('filtered_titles_with_items.csv', index=False)
+# filtered_df.to_csv('filtered_titles_with_keywords.csv', index=False)
 # print("CSV 파일로 저장 완료")

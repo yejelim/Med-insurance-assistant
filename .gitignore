@@ -3,6 +3,7 @@
 secrets.toml
 Secrets.txt
 surgery/merged_data.json
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

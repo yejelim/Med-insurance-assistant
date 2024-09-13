@@ -3,6 +3,8 @@
 secrets.toml
 Secrets.txt
 environment.yml
+*.pkl
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

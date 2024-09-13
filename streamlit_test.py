@@ -2,7 +2,7 @@ import streamlit as st
 import openai
 
 # OpenAI API 키 설정 (Streamlit secrets 사용)
-openai.api_key = st.secrets[openai]["openai_api_key"]
+openai.api_key = st.secrets["openai"]["openai_api_key"]
 
 # 사용자 입력을 임베딩하는 함수
 def get_embedding_from_openai(text):

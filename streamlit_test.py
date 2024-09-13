@@ -90,10 +90,15 @@ def main():
         )
 
 
-    # 입력된 텍스트 출력
-    if user_input:
-        st.write(f"입력된 내용: {user_input}")
+# '삭감 여부 확인' 버튼 추가
+    if st.button("삭감 여부 확인"):
+        if user_input:
+            st.subheader("결과")
+            st.write(f"입력된 내용: {user_input}")
+            st.success("삭감 여부를 확인했습니다.")  # 결과 메시지 예시
 
+
+'''
     st.header("S3에서 임베딩 데이터 로드 및 추출")
 
     # AWS S3 설정 입력
@@ -109,6 +114,7 @@ def main():
             st.write("메타데이터 예시:", metadatas[:1])  # 첫 번째 메타데이터 예시 출력
         except Exception as e:
             st.error(f"데이터 로드 중 오류 발생: {e}")
+'''
 
 if __name__ == "__main__":
     main()

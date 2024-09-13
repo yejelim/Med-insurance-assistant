@@ -15,14 +15,14 @@ def get_embedding_from_openai(text):
 
 def main():
     # 제목 설정
-    st.title("RAG 기반 LLM 모델 테스트")
+    st.title("의료비 삭감 판정 모델 - beta version")
 
     # 텍스트 입력창을 가장 위로 이동
-    st.subheader("문의 사항을 입력하세요.")
+    st.subheader("임상노트를 붙여넣으세요.")
     user_input = st.text_area("여기에 텍스트를 입력하세요:", height=200)
 
     # 사용자 정보 입력
-    st.subheader("환영합니다. 어떤 분야에 종사하시나요?")
+    st.subheader("어떤 분야에 종사하시나요?")
     occupation = st.radio(
         "직업을 선택하세요:",
         options=["의사", "간호사", "병원내 청구팀", "기타"],

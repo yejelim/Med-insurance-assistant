@@ -51,6 +51,28 @@ def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
     top_results = [{"유사도": similarities[i], "메타데이터": metadatas[i]} for i in top_indices]
     return top_results
 
+# GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수
+def evaluate_relevance_with_gpt(user_input, items):
+    # 프롬프트 템플릿 불러오기 (secrets 사용)
+    prompt_scoring = st.secrets["openai"]["prompt_scoring"]
+    # 항목들을 포맷에 맞게 나열
+    formatted_items = "\n\n".join([f"항목 {i+1}: {item['요약']}" for i, item in enumerate(items)])
+    # 프롬프트 작성
+    prompt = prompt_scoring.format(user_input=user_input, items=formatted_items)
+
+    # GPT-4 모델 호출
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    
+    # 응답에서 평가 점수 추출
+    result = response.choices[0].message.content.strip()
+    return result
+
 def main():
     # 제목 설정
     st.title("의료비 삭감 판정 모델 - beta version")
@@ -109,6 +131,12 @@ def main():
                     st.write(f"제목: {result['메타데이터']['제목']}")
                     st.write(f"요약: {result['메타데이터']['요약']}")
                     st.write("---")
+
+                # GPT-4 모델을 사용하여 각 항목의 연관성 평가
+                relevance_scores = evaluate_relevance_with_gpt(user_input, [result['메타데이터'] for result in top_results])
+                st.subheader("GPT 평가 연관성 점수")
+                st.write(relevance_scores)
+                
             except Exception as e:
                 st.error(f"임베딩 생성 및 유사도 분석 중 오류 발생: {e}")
 

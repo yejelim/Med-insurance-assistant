@@ -1,5 +1,9 @@
 import streamlit as st
 import openai
+import boto3
+import json
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 # OpenAI API 키 설정 (Streamlit secrets 사용)
 openai.api_key = st.secrets["openai"]["openai_api_key"]

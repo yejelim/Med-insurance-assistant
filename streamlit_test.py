@@ -31,6 +31,10 @@ def main():
     # 제목 설정
     st.title("RAG 기반 LLM 모델 테스트")
 
+    # 텍스트 입력창
+    st.subheader("임상 노트를 복사해서 붙여넣으세요.")
+    user_input = st.text_area("여기에 텍스트를 입력하세요:", height=500)
+
     # 사용자 정보 입력
     st.subheader("환영합니다. 어떤 분야에 종사하시나요?")
     occupation = st.radio(
@@ -85,8 +89,6 @@ def main():
             ]
         )
 
-    # 텍스트 입력창
-    user_input = st.text_area("여기에 텍스트를 입력하세요:", height=500)
 
     # 입력된 텍스트 출력
     if user_input:

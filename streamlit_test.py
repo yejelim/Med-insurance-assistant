@@ -3,6 +3,7 @@ import openai
 import boto3
 import json
 import numpy as np
+import re
 from sklearn.metrics.pairwise import cosine_similarity
 
 # OpenAI API 키 설정 (Streamlit secrets 사용)
@@ -54,11 +55,11 @@ def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수
 def evaluate_relevance_with_gpt(user_input, items):
     # 프롬프트 템플릿 불러오기 (secrets 사용)
-    prompt_scoring = st.secrets["openai"]["prompt_scoring"]
+    prompt_template = st.secrets["openai"]["prompt_scoring"]
     # 항목들을 포맷에 맞게 나열
     formatted_items = "\n\n".join([f"항목 {i+1}: {item['요약']}" for i, item in enumerate(items)])
     # 프롬프트 작성
-    prompt = prompt_scoring.format(user_input=user_input, items=formatted_items)
+    prompt = prompt_template.format(user_input=user_input, items=formatted_items)
 
     # GPT-4 모델 호출
     response = openai.ChatCompletion.create(
@@ -133,10 +134,38 @@ def main():
                     st.write("---")
 
                 # GPT-4 모델을 사용하여 각 항목의 연관성 평가
-                relevance_scores = evaluate_relevance_with_gpt(user_input, [result['메타데이터'] for result in top_results])
-                st.subheader("GPT 평가 연관성 점수")
-                st.write(relevance_scores)
-                
+                full_response = evaluate_relevance_with_gpt(user_input, [result['메타데이터'] for result in top_results])
+
+                # 7점 이상 항목 필터링
+                relevant_results = []
+                for idx, doc in enumerate(top_results, 1):
+                    score_match = re.search(rf"항목 {idx}:\s*(\d+)", full_response)
+                    if score_match:
+                        score = int(score_match.group(1))
+                        if score >= 7:  # 7점 이상인 항목만 추가
+                            with st.expander(f"항목 {idx} (GPT Score: {score})"):
+                                st.write(f"세부인정사항: {doc['메타데이터']['세부인정사항']}")
+                            relevant_results.append(doc['메타데이터'])
+
+                # 7점 이상 항목에 대해 개별 분석 수행
+                if relevant_results:
+                    decisions = []
+                    explanations = []
+                    for idx, criteria in enumerate(relevant_results, 1):
+                        prompt_template = st.secrets["openai"]["prompt_interpretation"]
+                        response = openai.ChatCompletion.create(
+                            model="gpt-4o-mini",
+                            messages=[
+                                {"role": "system", "content": "You are an expert in analyzing medical documents."},
+                                {"role": "user", "content": prompt_template.format(user_input=user_input, criteria=criteria['세부인정사항'])}
+                            ],
+                            max_tokens=1000,
+                            temperature=0.3,
+                        )
+                        analysis = response.choices[0].message.content.strip()
+                        explanations.append(f"Analysis of criteria {idx}:\n{analysis}")
+                    st.write("\n\n".join(explanations))
+
             except Exception as e:
                 st.error(f"임베딩 생성 및 유사도 분석 중 오류 발생: {e}")
 

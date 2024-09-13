@@ -1,3 +1,5 @@
+# Model baseline, before improvement in september
+
 import json
 import numpy as np
 import streamlit as st

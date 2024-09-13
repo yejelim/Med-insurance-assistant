@@ -86,7 +86,7 @@ def main():
         )
 
     # 텍스트 입력창
-    user_input = st.text_input("여기에 텍스트를 입력하세요:")
+    user_input = st.text_area("여기에 텍스트를 입력하세요:", height=500)
 
     # 입력된 텍스트 출력
     if user_input:

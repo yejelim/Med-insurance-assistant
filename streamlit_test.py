@@ -149,7 +149,6 @@ def main():
 
                 # 7점 이상 항목에 대해 개별 분석 수행
                 if relevant_results:
-                    decisions = []
                     explanations = []
                     for idx, criteria in enumerate(relevant_results, 1):
                         prompt_template = st.secrets["openai"]["prompt_interpretation"]

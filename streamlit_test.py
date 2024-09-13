@@ -19,7 +19,7 @@ def main():
 
     # 텍스트 입력창을 가장 위로 이동
     st.subheader("임상노트를 붙여넣으세요.")
-    user_input = st.text_area("여기에 텍스트를 입력하세요:", height=200)
+    user_input = st.text_area("여기에 텍스트를 입력하세요:", height=500)
 
     # 사용자 정보 입력
     st.subheader("어떤 분야에 종사하시나요?")

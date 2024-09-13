@@ -36,7 +36,7 @@ def extract_vectors_and_metadata(embedded_data):
     metadatas = []
     for item in embedded_data:
         vectors.append(np.array(item['임베딩']))
-        metadatas.append({"요약": item["요약"], "세부인정사항": item["세부인정사항"]})
+        metadatas.append({"제목": item["제목"], "요약": item["요약"], "세부인정사항": item["세부인정사항"]})
     return vectors, metadatas
 
 # 코사인 유사도를 계산하여 상위 5개 결과 반환
@@ -106,8 +106,8 @@ def main():
                 st.subheader("상위 5개 유사 항목")
                 for result in top_results:
                     st.write(f"유사도: {result['유사도']:.4f}")
+                    st.write(f"제목: {result['메타데이터']['제목']}")
                     st.write(f"요약: {result['메타데이터']['요약']}")
-                    st.write(f"세부인정사항: {result['메타데이터']['세부인정사항']}")
                     st.write("---")
             except Exception as e:
                 st.error(f"임베딩 생성 및 유사도 분석 중 오류 발생: {e}")

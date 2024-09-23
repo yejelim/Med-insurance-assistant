@@ -35,9 +35,29 @@ def load_data_from_s3(bucket_name, file_key):
 def extract_vectors_and_metadata(embedded_data):
     vectors = []
     metadatas = []
+    
+    # embedded_data가 리스트인지 확인
+    if not isinstance(embedded_data, list):
+        st.error("임베딩 데이터가 리스트 형식이 아닙니다.")
+        return [], []
+    
     for item in embedded_data:
-        vectors.append(np.array(item['임베딩']))
-        metadatas.append({"제목": item["제목"], "요약": item["요약"], "세부인정사항": item["세부인정사항"]})
+        # 각 item이 딕셔너리인지 확인
+        if not isinstance(item, dict):
+            st.error(f"아이템이 딕셔너리 형식이 아닙니다: {item}")
+            continue
+        
+        # 예상 키가 있는지 확인
+        if '임베딩' in item and '제목' in item and '요약' in item and '세부인정사항' in item:
+            vectors.append(np.array(item['임베딩']))
+            metadatas.append({
+                "제목": item["제목"],
+                "요약": item["요약"],
+                "세부인정사항": item["세부인정사항"]
+            })
+        else:
+            st.warning(f"키가 누락된 아이템이 있습니다: {item}")
+    
     return vectors, metadatas
 
 # 코사인 유사도를 계산하여 상위 5개 결과 반환

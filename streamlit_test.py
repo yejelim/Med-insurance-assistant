@@ -71,21 +71,25 @@ def extract_vectors_and_metadata(embedded_data):
     return vectors, metadatas
 
 # 코사인 유사도를 계산하여 상위 5개 결과 반환
+# 코사인 유사도를 계산하여 상위 5개 결과 반환
 def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
-    # 디버깅용 출력 추가
-    st.write("사용자 임베딩의 타입:", type(embedding), "길이:", len(embedding))
-    st.write("첫 번째 벡터의 타입:", type(vectors[0]), "길이:", len(vectors[0]) if len(vectors) > 0 else "N/A")
-    st.write("메타데이터의 타입:", type(metadatas), "길이:", len(metadatas))
+    # 벡터와 메타데이터의 길이 확인
+    if len(vectors) != len(metadatas):
+        st.error(f"벡터 수와 메타데이터 수가 일치하지 않습니다: 벡터 수 = {len(vectors)}, 메타데이터 수 = {len(metadatas)}")
+        return []
 
     # 사용자 임베딩 벡터를 2차원 배열로 변환
     user_embedding = np.array(embedding).reshape(1, -1)
+    
+    # 모든 벡터와의 코사인 유사도 계산
     similarities = cosine_similarity(user_embedding, vectors).flatten()
-
+    
     # 유사도가 높은 순서대로 인덱스 정렬
     top_indices = similarities.argsort()[-top_n:][::-1]
 
     # 상위 결과 출력
     top_results = [{"유사도": similarities[i], "메타데이터": metadatas[i]} for i in top_indices]
+    
     return top_results
 
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수

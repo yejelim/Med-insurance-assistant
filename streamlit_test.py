@@ -39,7 +39,6 @@ def extract_vectors_and_metadata(embedded_data):
     # embedded_data가 리스트인지 확인
     if not isinstance(embedded_data, list):
         st.error("임베딩 데이터가 리스트 형식이 아닙니다.")
-        st.write("임베딩 데이터 구조 확인:", embedded_data)
         return [], []
     
     # 각 item이 예상한 딕셔너리인지 확인하고 필요한 정보 추출
@@ -47,20 +46,22 @@ def extract_vectors_and_metadata(embedded_data):
         # item이 딕셔너리인지 확인
         if isinstance(item, dict):
             # 필요한 키가 모두 있는지 확인
-            if all(key in item for key in ['임베딩', '제목', '요약', '세부인정사항']):
+            if all(key in item for key in ['임베딩', '제목', '요약', '세부인정사항', '항목']):
                 try:
+                    # 임베딩 벡터의 길이 및 '항목'의 내용 확인
+                    st.write(f"Item {idx}: 임베딩 벡터의 길이 = {len(item['임베딩'])}, 항목 내용 = {item['항목']}")
                     vectors.append(np.array(item['임베딩']))
                     metadatas.append({
                         "제목": item["제목"],
                         "요약": item["요약"],
-                        "세부인정사항": item["세부인정사항"]
+                        "세부인정사항": item["세부인정사항"],
+                        "항목": item["항목"]
                     })
                 except (TypeError, ValueError) as e:
                     st.warning(f"임베딩 데이터를 배열로 변환하는 중 오류 발생 (인덱스 {idx}): {e}")
-                    st.write(f"문제가 있는 임베딩 데이터 내용: {item['임베딩']}")
                     continue  # 문제가 있는 항목은 무시하고 다음 항목으로 이동
             else:
-                st.warning(f"필수 키가 누락된 아이템 발견 (인덱스 {idx}): {item}")
+                st.warning(f"필수 키가 누락된 아이템 발견 (인덱스 {idx}): {list(item.keys())}")
         else:
             st.warning(f"비정상적인 데이터 형식의 아이템 발견 (인덱스 {idx}): {item}")
     
@@ -70,7 +71,6 @@ def extract_vectors_and_metadata(embedded_data):
     
     return vectors, metadatas
 
-# 코사인 유사도를 계산하여 상위 5개 결과 반환
 # 코사인 유사도를 계산하여 상위 5개 결과 반환
 def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
     # 사용자 임베딩 벡터를 2차원 배열로 변환

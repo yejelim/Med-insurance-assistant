@@ -39,6 +39,7 @@ def extract_vectors_and_metadata(embedded_data):
     # embedded_data가 리스트인지 확인
     if not isinstance(embedded_data, list):
         st.error("임베딩 데이터가 리스트 형식이 아닙니다.")
+        st.write("임베딩 데이터 구조 확인:", embedded_data)
         return [], []
     
     # 각 item이 예상한 딕셔너리인지 확인하고 필요한 정보 추출
@@ -46,22 +47,20 @@ def extract_vectors_and_metadata(embedded_data):
         # item이 딕셔너리인지 확인
         if isinstance(item, dict):
             # 필요한 키가 모두 있는지 확인
-            if all(key in item for key in ['임베딩', '제목', '요약', '세부인정사항', '항목']):
+            if all(key in item for key in ['임베딩', '제목', '요약', '세부인정사항']):
                 try:
-                    # 임베딩 벡터의 길이 및 '항목'의 내용 확인
-                    st.write(f"Item {idx}: 임베딩 벡터의 길이 = {len(item['임베딩'])}, 항목 내용 = {item['항목']}")
                     vectors.append(np.array(item['임베딩']))
                     metadatas.append({
                         "제목": item["제목"],
                         "요약": item["요약"],
-                        "세부인정사항": item["세부인정사항"],
-                        "항목": item["항목"]
+                        "세부인정사항": item["세부인정사항"]
                     })
                 except (TypeError, ValueError) as e:
                     st.warning(f"임베딩 데이터를 배열로 변환하는 중 오류 발생 (인덱스 {idx}): {e}")
+                    st.write(f"문제가 있는 임베딩 데이터 내용: {item['임베딩']}")
                     continue  # 문제가 있는 항목은 무시하고 다음 항목으로 이동
             else:
-                st.warning(f"필수 키가 누락된 아이템 발견 (인덱스 {idx}): {list(item.keys())}")
+                st.warning(f"필수 키가 누락된 아이템 발견 (인덱스 {idx}): {item}")
         else:
             st.warning(f"비정상적인 데이터 형식의 아이템 발견 (인덱스 {idx}): {item}")
     
@@ -73,37 +72,20 @@ def extract_vectors_and_metadata(embedded_data):
 
 # 코사인 유사도를 계산하여 상위 5개 결과 반환
 def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
+    # 디버깅용 출력 추가
+    st.write("사용자 임베딩의 타입:", type(embedding), "길이:", len(embedding))
+    st.write("첫 번째 벡터의 타입:", type(vectors[0]), "길이:", len(vectors[0]) if len(vectors) > 0 else "N/A")
+    st.write("메타데이터의 타입:", type(metadatas), "길이:", len(metadatas))
+
     # 사용자 임베딩 벡터를 2차원 배열로 변환
     user_embedding = np.array(embedding).reshape(1, -1)
-    
-    # 모든 벡터와의 코사인 유사도 계산
-    try:
-        similarities = cosine_similarity(user_embedding, vectors).flatten()
-    except Exception as e:
-        st.error(f"코사인 유사도 계산 중 오류 발생: {e}")
-        st.write("user_embedding:", user_embedding)
-        st.write("vectors:", vectors)
-        return []
+    similarities = cosine_similarity(user_embedding, vectors).flatten()
 
     # 유사도가 높은 순서대로 인덱스 정렬
-    try:
-        top_indices = similarities.argsort()[-top_n:][::-1]
-    except Exception as e:
-        st.error(f"유사도 인덱스 정렬 중 오류 발생: {e}")
-        st.write("similarities:", similarities)
-        return []
+    top_indices = similarities.argsort()[-top_n:][::-1]
 
     # 상위 결과 출력
-    top_results = []
-    for i in top_indices:
-        try:
-            result = {"유사도": similarities[i], "메타데이터": metadatas[i]}
-            top_results.append(result)
-        except Exception as e:
-            st.error(f"상위 결과를 추출하는 중 오류 발생: {e}")
-            st.write(f"인덱스: {i}, similarities: {similarities[i]}, metadatas: {metadatas}")
-            continue
-
+    top_results = [{"유사도": similarities[i], "메타데이터": metadatas[i]} for i in top_indices]
     return top_results
 
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수

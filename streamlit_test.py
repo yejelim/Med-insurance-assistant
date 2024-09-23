@@ -174,21 +174,31 @@ def main():
                                 st.write(f"세부인정사항: {doc['메타데이터']['세부인정사항']}")
                             relevant_results.append(doc['메타데이터'])
 
-                # 7점 이상 항목에 대해 개별 분석 수행
+                # 7점 이상을 부여한 항목들에 대해 개별 기준 분석 수행
                 if relevant_results:
+                    decisions = []
                     explanations = []
+
                     for idx, criteria in enumerate(relevant_results, 1):
+                        # secrets.toml 파일에서 프롬프트 불러오기
                         prompt_template = st.secrets["openai"]["prompt_interpretation"]
+                        # 프롬프트 작성
+                        prompt = prompt_template.format(
+                            user_input=user_input,
+                            criteria=criteria['세부인정사항']
+                        )
+                        
                         response = openai.ChatCompletion.create(
                             model="gpt-4o-mini",
                             messages=[
                                 {"role": "system", "content": "You are an expert in analyzing medical documents."},
-                                {"role": "user", "content": prompt_template.format(user_input=user_input, criteria=criteria['세부인정사항'])}
+                                {"role": "user", "content": prompt}
                             ],
                             max_tokens=1000,
                             temperature=0.3,
                         )
-                        analysis = response.choices[0].message.content.strip()
+
+                        analysis = response['choices'][0]['message']['content'].strip()
                         explanations.append(f"Analysis of criteria {idx}:\n{analysis}")
                     st.write("\n\n".join(explanations))
 

@@ -44,6 +44,7 @@ def extract_vectors_and_metadata(embedded_data):
     
     # 각 item이 예상한 딕셔너리인지 확인하고 필요한 정보 추출
     for idx, item in enumerate(embedded_data):
+        # item이 딕셔너리인지 확인
         if isinstance(item, dict):
             # 필요한 키가 모두 있는지 확인
             if all(key in item for key in ['임베딩', '제목', '요약', '세부인정사항']):
@@ -56,6 +57,8 @@ def extract_vectors_and_metadata(embedded_data):
                     })
                 except (TypeError, ValueError) as e:
                     st.warning(f"임베딩 데이터를 배열로 변환하는 중 오류 발생 (인덱스 {idx}): {e}")
+                    st.write(f"문제가 있는 임베딩 데이터 내용: {item['임베딩']}")
+                    continue  # 문제가 있는 항목은 무시하고 다음 항목으로 이동
             else:
                 st.warning(f"필수 키가 누락된 아이템 발견 (인덱스 {idx}): {item}")
         else:
@@ -150,6 +153,7 @@ def main():
                 embedded_data = load_data_from_s3(bucket_name, file_key)
                 vectors, metadatas = extract_vectors_and_metadata(embedded_data)
                 st.write("S3 데이터 로드 및 처리 완료!")
+            
 
                 # 코사인 유사도를 계산하여 상위 5개의 결과 출력
                 top_results = find_top_n_similar(embedding, vectors, metadatas)

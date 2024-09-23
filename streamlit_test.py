@@ -36,7 +36,7 @@ def extract_vectors_and_metadata(embedded_data):
     vectors = []
     metadatas = []
     
-    # embedded_data가 리스트인지 확인
+    # embedded_data가 리스트인지 확인하고 출력
     if not isinstance(embedded_data, list):
         st.error("임베딩 데이터가 리스트 형식이 아닙니다.")
         st.write("임베딩 데이터 구조 확인:", embedded_data)
@@ -44,9 +44,19 @@ def extract_vectors_and_metadata(embedded_data):
     
     # 각 item이 예상한 딕셔너리인지 확인하고 필요한 정보 추출
     for idx, item in enumerate(embedded_data):
+        # item의 타입을 출력하여 확인
+        st.write(f"Item at index {idx}: {type(item)} -> {item}")
+        
         if isinstance(item, dict):
-            # 필요한 키가 모두 있는지 확인
-            if all(key in item for key in ['임베딩', '제목', '요약', '세부인정사항']):
+            # 각 키와 해당 값의 타입 확인
+            for key in ['임베딩', '제목', '요약', '세부인정사항']:
+                if key in item:
+                    st.write(f"Key '{key}' exists, value type: {type(item[key])}")
+                else:
+                    st.warning(f"Key '{key}' is missing in item at index {idx}.")
+            
+            # 모든 필수 키가 존재하는 경우
+            if '임베딩' in item and '제목' in item and '요약' in item and '세부인정사항' in item:
                 try:
                     vectors.append(np.array(item['임베딩']))
                     metadatas.append({
@@ -55,7 +65,8 @@ def extract_vectors_and_metadata(embedded_data):
                         "세부인정사항": item["세부인정사항"]
                     })
                 except (TypeError, ValueError) as e:
-                    st.warning(f"임베딩 데이터를 배열로 변환하는 중 오류 발생 (인덱스 {idx}): {e}")
+                    st.error(f"임베딩 데이터를 배열로 변환하는 중 오류 발생 (인덱스 {idx}): {e}")
+                    st.write(f"해당 임베딩 데이터 내용: {item['임베딩']}")
             else:
                 st.warning(f"필수 키가 누락된 아이템 발견 (인덱스 {idx}): {item}")
         else:

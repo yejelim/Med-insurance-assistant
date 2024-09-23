@@ -71,15 +71,39 @@ def extract_vectors_and_metadata(embedded_data):
     return vectors, metadatas
 
 # 코사인 유사도를 계산하여 상위 5개 결과 반환
+# 코사인 유사도를 계산하여 상위 5개 결과 반환
 def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
     # 사용자 임베딩 벡터를 2차원 배열로 변환
     user_embedding = np.array(embedding).reshape(1, -1)
+    
     # 모든 벡터와의 코사인 유사도 계산
-    similarities = cosine_similarity(user_embedding, vectors).flatten()
+    try:
+        similarities = cosine_similarity(user_embedding, vectors).flatten()
+    except Exception as e:
+        st.error(f"코사인 유사도 계산 중 오류 발생: {e}")
+        st.write("user_embedding:", user_embedding)
+        st.write("vectors:", vectors)
+        return []
+
     # 유사도가 높은 순서대로 인덱스 정렬
-    top_indices = similarities.argsort()[-top_n:][::-1]
+    try:
+        top_indices = similarities.argsort()[-top_n:][::-1]
+    except Exception as e:
+        st.error(f"유사도 인덱스 정렬 중 오류 발생: {e}")
+        st.write("similarities:", similarities)
+        return []
+
     # 상위 결과 출력
-    top_results = [{"유사도": similarities[i], "메타데이터": metadatas[i]} for i in top_indices]
+    top_results = []
+    for i in top_indices:
+        try:
+            result = {"유사도": similarities[i], "메타데이터": metadatas[i]}
+            top_results.append(result)
+        except Exception as e:
+            st.error(f"상위 결과를 추출하는 중 오류 발생: {e}")
+            st.write(f"인덱스: {i}, similarities: {similarities[i]}, metadatas: {metadatas}")
+            continue
+
     return top_results
 
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수

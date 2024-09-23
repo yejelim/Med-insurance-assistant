@@ -175,6 +175,12 @@ def main():
                     st.write("---")
 
                 # GPT-4 모델을 사용하여 각 항목의 연관성 평가
+                st.write("evaluate_relevance_with_gpt로 전달된 items:", items)
+                # items의 각 요소가 딕셔너리인지 확인
+                for idx, item in enumerate(items):
+                    if not isinstance(item, dict):
+                        st.error(f"items[{idx}]가 딕셔너리가 아닙니다: {item}")
+
                 full_response = evaluate_relevance_with_gpt(user_input, [result['메타데이터'] for result in top_results])
 
                 # 7점 이상 항목 필터링

@@ -1,0 +1,147 @@
+Tesseract Debug Log
+==================================================
+Processing file: page_1.png
+Estimating resolution as 329
+
+==================================================
+Processing file: page_10.png
+Estimating resolution as 335
+
+==================================================
+Processing file: page_11.png
+Estimating resolution as 332
+
+==================================================
+Processing file: page_12.png
+Estimating resolution as 333
+Detected 112 diacritics
+
+==================================================
+Processing file: page_13.png
+Estimating resolution as 333
+
+==================================================
+Processing file: page_14.png
+Estimating resolution as 328
+no best words!!
+no best words!!
+no best words!!
+
+==================================================
+Processing file: page_15.png
+Estimating resolution as 328
+
+==================================================
+Processing file: page_16.png
+Estimating resolution as 331
+
+==================================================
+Processing file: page_17.png
+Estimating resolution as 334
+
+==================================================
+Processing file: page_18.png
+Estimating resolution as 328
+no best words!!
+
+==================================================
+Processing file: page_19.png
+Estimating resolution as 329
+no best words!!
+
+==================================================
+Processing file: page_2.png
+Estimating resolution as 329
+
+==================================================
+Processing file: page_20.png
+Estimating resolution as 330
+Detected 116 diacritics
+no best words!!
+
+==================================================
+Processing file: page_21.png
+Estimating resolution as 330
+
+==================================================
+Processing file: page_22.png
+Estimating resolution as 361
+
+==================================================
+Processing file: page_23.png
+Estimating resolution as 330
+Detected 75 diacritics
+
+==================================================
+Processing file: page_24.png
+Estimating resolution as 328
+Detected 148 diacritics
+
+==================================================
+Processing file: page_25.png
+Estimating resolution as 329
+Detected 196 diacritics
+
+==================================================
+Processing file: page_26.png
+Estimating resolution as 329
+
+==================================================
+Processing file: page_27.png
+Estimating resolution as 331
+
+==================================================
+Processing file: page_28.png
+Estimating resolution as 293
+
+==================================================
+Processing file: page_29.png
+Estimating resolution as 328
+
+==================================================
+Processing file: page_3.png
+Estimating resolution as 326
+
+==================================================
+Processing file: page_30.png
+Estimating resolution as 331
+no best words!!
+
+==================================================
+Processing file: page_31.png
+Estimating resolution as 334
+
+==================================================
+Processing file: page_32.png
+Estimating resolution as 331
+no best words!!
+
+==================================================
+Processing file: page_4.png
+Estimating resolution as 327
+Detected 182 diacritics
+
+==================================================
+Processing file: page_5.png
+Estimating resolution as 328
+
+==================================================
+Processing file: page_6.png
+Estimating resolution as 328
+Detected 121 diacritics
+
+==================================================
+Processing file: page_7.png
+Estimating resolution as 327
+Detected 124 diacritics
+
+==================================================
+Processing file: page_8.png
+Estimating resolution as 330
+
+==================================================
+Processing file: page_9.png
+Estimating resolution as 333
+Detected 212 diacritics
+
+==================================================

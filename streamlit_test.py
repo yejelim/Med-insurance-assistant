@@ -164,7 +164,6 @@ def main():
                 vectors, metadatas = extract_vectors_and_metadata(embedded_data)
                 st.write("S3 데이터 로드 및 처리 완료!")
             
-
                 # 코사인 유사도를 계산하여 상위 5개의 결과 출력
                 top_results = find_top_n_similar(embedding, vectors, metadatas)
                 st.subheader("상위 5개 유사 항목")
@@ -174,14 +173,17 @@ def main():
                     st.write(f"요약: {result['메타데이터']['요약']}")
                     st.write("---")
 
-                # GPT-4 모델을 사용하여 각 항목의 연관성 평가
+                # 'top_results'의 메타데이터를 'items'로 정의하여 'evaluate_relevance_with_gpt'로 전달
+                items = [result['메타데이터'] for result in top_results]
                 st.write("evaluate_relevance_with_gpt로 전달된 items:", items)
+                
                 # items의 각 요소가 딕셔너리인지 확인
                 for idx, item in enumerate(items):
                     if not isinstance(item, dict):
                         st.error(f"items[{idx}]가 딕셔너리가 아닙니다: {item}")
 
-                full_response = evaluate_relevance_with_gpt(user_input, [result['메타데이터'] for result in top_results])
+                # GPT-4 모델을 사용하여 각 항목의 연관성 평가
+                full_response = evaluate_relevance_with_gpt(user_input, items)
 
                 # 7점 이상 항목 필터링
                 relevant_results = []

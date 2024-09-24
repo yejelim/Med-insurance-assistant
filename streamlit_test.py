@@ -71,7 +71,6 @@ def extract_vectors_and_metadata(embedded_data):
     return vectors, metadatas
 
 # 코사인 유사도를 계산하여 상위 5개 결과 반환
-# 코사인 유사도를 계산하여 상위 5개 결과 반환
 def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
     # 벡터와 메타데이터의 길이 확인
     if len(vectors) != len(metadatas):
@@ -94,25 +93,33 @@ def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
 
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수
 def evaluate_relevance_with_gpt(user_input, items):
-    # 프롬프트 템플릿 불러오기 (secrets 사용)
-    prompt_template = st.secrets["openai"]["prompt_scoring"]
-    # 항목들을 포맷에 맞게 나열
-    formatted_items = "\n\n".join([f"항목 {i+1}: {item['요약']}" for i, item in enumerate(items)])
-    # 프롬프트 작성
-    prompt = prompt_template.format(user_input=user_input, items=formatted_items)
+    try:
+        # 프롬프트 템플릿 불러오기 (secrets 사용)
+        prompt_template = st.secrets["openai"]["prompt_scoring"]
+        # 항목들을 포맷에 맞게 나열
+        formatted_items = "\n\n".join([f"항목 {i+1}: {item['요약']}" for i, item in enumerate(items)])
+        # 프롬프트 작성
+        prompt = prompt_template.format(user_input=user_input, items=formatted_items)
 
-    # GPT-4 모델 호출
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    
-    # 응답에서 평가 점수 추출
-    result = response.choices[0].message.content.strip()
-    return result
+        # GPT-4 모델 호출
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "당신은 도움이 되는 어시스턴트입니다."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            n=1,
+            temperature=0.7,
+        )
+
+        # 응답에서 평가 점수 추출
+        result = response.choices[0].message.content.strip()
+        return result
+
+    except Exception as e:
+        st.error(f"GPT 모델 호출 중 오류 발생: {e}")
+        return None
 
 def main():
     # 제목 설정
@@ -184,45 +191,59 @@ def main():
 
                 # GPT-4 모델을 사용하여 각 항목의 연관성 평가
                 full_response = evaluate_relevance_with_gpt(user_input, items)
+                
+                if full_response:
+                    st.subheader("GPT-4 연관성 평가 결과")
+                    st.write(full_response)
 
-                # 7점 이상 항목 필터링
-                relevant_results = []
-                for idx, doc in enumerate(top_results, 1):
-                    score_match = re.search(rf"항목 {idx}:\s*(\d+)", full_response)
-                    if score_match:
-                        score = int(score_match.group(1))
-                        if score >= 7:  # 7점 이상인 항목만 추가
-                            with st.expander(f"항목 {idx} (GPT Score: {score})"):
-                                st.write(f"세부인정사항: {doc['메타데이터']['세부인정사항']}")
-                            relevant_results.append(doc['메타데이터'])
+                    # 7점 이상 항목 필터링
+                    relevant_results = []
+                    for idx, doc in enumerate(top_results, 1):
+                        score_match = re.search(rf"항목 {idx}:\s*(\d+)", full_response)
+                        if score_match:
+                            score = int(score_match.group(1))
+                            if score >= 7:  # 7점 이상인 항목만 추가
+                                with st.expander(f"항목 {idx} (GPT Score: {score})"):
+                                    st.write(f"세부인정사항: {doc['메타데이터']['세부인정사항']}")
+                                relevant_results.append(doc['메타데이터'])
+                        else:
+                            st.warning(f"항목 {idx}의 점수를 추출하지 못했습니다.")
 
-                # 7점 이상을 부여한 항목들에 대해 개별 기준 분석 수행
-                if relevant_results:
-                    decisions = []
-                    explanations = []
+                    # 7점 이상을 부여한 항목들에 대해 개별 기준 분석 수행
+                    if relevant_results:
+                        decisions = []
+                        explanations = []
 
-                    for idx, criteria in enumerate(relevant_results, 1):
-                        # secrets.toml 파일에서 프롬프트 불러오기
-                        prompt_template = st.secrets["openai"]["prompt_interpretation"]
-                        # 프롬프트 작성
-                        prompt = prompt_template.format(
-                            user_input=user_input,
-                            criteria=criteria['세부인정사항']
-                        )
-                        
-                        response = openai.ChatCompletion.create(
-                            model="gpt-4o-mini",
-                            messages=[
-                                {"role": "system", "content": "You are an expert in analyzing medical documents."},
-                                {"role": "user", "content": prompt}
-                            ],
-                            max_tokens=1000,
-                            temperature=0.3,
-                        )
+                        for idx, criteria in enumerate(relevant_results, 1):
+                            try:
+                                # secrets.toml 파일에서 프롬프트 불러오기
+                                prompt_template = st.secrets["openai"]["prompt_interpretation"]
+                                # 프롬프트 작성
+                                prompt = prompt_template.format(
+                                    user_input=user_input,
+                                    criteria=criteria['세부인정사항']
+                                )
+                                
+                                response = openai.ChatCompletion.create(
+                                    model="gpt-4",
+                                    messages=[
+                                        {"role": "system", "content": "당신은 의료 문서를 분석하는 전문가입니다."},
+                                        {"role": "user", "content": prompt}
+                                    ],
+                                    max_tokens=1000,
+                                    temperature=0.3,
+                                )
 
-                        analysis = response['choices'][0]['message']['content'].strip()
-                        explanations.append(f"Analysis of criteria {idx}:\n{analysis}")
-                    st.write("\n\n".join(explanations))
+                                analysis = response['choices'][0]['message']['content'].strip()
+                                explanations.append(f"기준 {idx}에 대한 분석:\n{analysis}")
+                            except Exception as e:
+                                st.error(f"기준 {idx}에 대한 분석 중 오류 발생: {e}")
+                        st.subheader("개별 기준에 대한 GPT-4 분석 결과")
+                        st.write("\n\n".join(explanations))
+                    else:
+                        st.warning("7점 이상인 항목이 없습니다.")
+                else:
+                    st.error("GPT 모델의 응답을 받지 못했습니다.")
 
             except Exception as e:
                 st.error(f"임베딩 생성 및 유사도 분석 중 오류 발생: {e}")

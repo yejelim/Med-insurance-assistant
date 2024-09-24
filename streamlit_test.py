@@ -216,6 +216,9 @@ def main():
 
                         for idx, criteria in enumerate(relevant_results, 1):
                             try:
+                                st.write(f"기준 {idx}의 타입: {type(criteria)}")
+                                st.write(f"기준 {idx}의 내용: {criteria}")
+
                                 # secrets.toml 파일에서 프롬프트 불러오기
                                 prompt_template = st.secrets["openai"]["prompt_interpretation"]
                                 # 프롬프트 작성

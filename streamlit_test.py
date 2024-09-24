@@ -204,7 +204,7 @@ def main():
                             score = int(score_match.group(1))
                             if score >= 7:  # 7점 이상인 항목만 추가
                                 with st.expander(f"항목 {idx} (GPT Score: {score})"):
-                                    st.write(f"세부인정사항: {doc['메타데이터']['세부인정사항']}")
+                                    st.text(f"세부인정사항: {doc['메타데이터']['세부인정사항']}")
                                 relevant_results.append(doc['메타데이터'])
                         else:
                             st.warning(f"항목 {idx}의 점수를 추출하지 못했습니다.")

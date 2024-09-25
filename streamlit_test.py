@@ -101,7 +101,7 @@ def extract_clinical_info(user_input):
 
         # GPT-4 모델을 사용하여 정보 추출
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 의료 기록을 분석하는 전문가입니다."},
                 {"role": "user", "content": prompt}
@@ -138,7 +138,7 @@ def evaluate_relevance_with_gpt(extracted_info, items):
 
         # GPT-4 모델 호출
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 도움이 되는 어시스턴트입니다."},
                 {"role": "user", "content": prompt}
@@ -247,7 +247,7 @@ def main():
                                     )
 
                                     response = openai.ChatCompletion.create(
-                                        model="gpt-4",
+                                        model="gpt-4o-mini",
                                         messages=[
                                             {"role": "system", "content": "당신은 의료 문서를 분석하는 전문가입니다."},
                                             {"role": "user", "content": prompt}

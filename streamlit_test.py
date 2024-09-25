@@ -160,7 +160,7 @@ def main():
 
                 # 4. 'top_results'의 메타데이터를 'items'로 정의하여 'evaluate_relevance_with_gpt'로 전달
                 items = [result['메타데이터'] for result in top_results]
-                st.write("evaluate_relevance_with_gpt로 전달된 items:", items)
+                # st.write("evaluate_relevance_with_gpt로 전달된 items:", items)
 
                 # 5. 연관성 평가
                 with st.spinner("GPT-4를 사용하여 연관성 평가 중..."):
@@ -210,6 +210,25 @@ def main():
                                     )
 
                                     analysis = response['choices'][0]['message']['content'].strip()
+
+                                    important_entities_section = "중요 엔티티:"
+                                    extracted_info_section = "임상 기록에서 추출된 정보:"
+
+                                    # 결과에서 중요 엔티티 부분, 임상 기록 추출 정보, 분석 결과를 분리
+                                    important_entities_section = analysis.split(important_entities_section)[1].split("분석 결과:")[0].strip()
+                                    extracted_info = analysis.split(extracted_info_section)[1].split("분석 결과:")[0].strip()
+                                    analysis_result = analysis.split("분석 결과:")[1].strip()
+                                    
+                                    # 접기 기능을 이용해 "중요 엔티티"와 "임상 기록에서 추출된 정보"를 표시
+                                    with st.expander(f"기준 {idx}에 대한 분석: 중요 엔티티"):
+                                        st.text(important_entities)
+
+                                    with st.expander(f"기준 {idx}에 대한 분석: 임상 기록에서 추출된 정보"):
+                                        st.text(extracted_info)
+                                    # 분석 결과는 항상 펼쳐진 상태로 표시
+                                    st.subheader(f"기준 {idx}에 대한 분석 결과")
+                                    st.text(analysis_result)
+                                    
                                     explanations.append(f"기준 {idx}에 대한 분석:\n{analysis}")
 
                                     # 심사 결과 확인

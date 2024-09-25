@@ -221,7 +221,7 @@ def main():
                                     
                                     # 접기 기능을 이용해 "중요 엔티티"와 "임상 기록에서 추출된 정보"를 표시
                                     with st.expander(f"기준 {idx}에 대한 분석: 중요 엔티티"):
-                                        st.text(important_entities)
+                                        st.text(important_entities_section)
 
                                     with st.expander(f"기준 {idx}에 대한 분석: 임상 기록에서 추출된 정보"):
                                         st.text(extracted_info)

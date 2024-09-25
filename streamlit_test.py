@@ -15,7 +15,6 @@ def get_embedding_from_openai(text):
         model="text-embedding-ada-002",
         input=text
     )
-    # 임베딩 결과 반환
     return response['data'][0]['embedding']
 
 # AWS S3에서 임베딩 데이터를 로드하는 함수
@@ -91,50 +90,15 @@ def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
     
     return top_results
 
-# GPT-4를 사용하여 임상 정보를 추출하는 함수
-def extract_clinical_info(user_input):
-    try:
-        # 프롬프트 템플릿 불러오기 (secrets 사용)
-        extraction_prompt = st.secrets["openai"]["prompt_extraction"]
-        # 프롬프트 작성
-        prompt = extraction_prompt.format(user_input=user_input)
-
-        # GPT-4 모델을 사용하여 정보 추출
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "당신은 의료 기록을 분석하는 전문가입니다."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.5,
-        )
-
-        extracted_info = response.choices[0].message.content.strip()
-        return extracted_info
-
-    except Exception as e:
-        st.error(f"임상 정보 추출 중 오류 발생: {e}")
-        return None
-
-# 구조화된 임상 정보를 임베딩하는 함수
-def get_structured_embedding(extracted_info):
-    try:
-        embedding = get_embedding_from_openai(extracted_info)
-        return embedding
-    except Exception as e:
-        st.error(f"구조화된 임베딩 생성 중 오류 발생: {e}")
-        return None
-
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수
-def evaluate_relevance_with_gpt(extracted_info, items):
+def evaluate_relevance_with_gpt(user_input, items):
     try:
         # 프롬프트 템플릿 불러오기 (secrets 사용)
         prompt_template = st.secrets["openai"]["prompt_scoring"]
         # 항목들을 포맷에 맞게 나열
         formatted_items = "\n\n".join([f"항목 {i+1}: {item['요약']}" for i, item in enumerate(items)])
         # 프롬프트 작성
-        prompt = prompt_template.format(extracted_info=extracted_info, items=formatted_items)
+        prompt = prompt_template.format(user_input=user_input, items=formatted_items)
 
         # GPT-4 모델 호출
         response = openai.ChatCompletion.create(
@@ -163,41 +127,29 @@ def main():
     st.subheader("임상노트를 붙여넣으세요.")
     user_input = st.text_area("여기에 텍스트를 입력하세요:", height=500)
 
-    # 사용자 정보 입력 (생략 가능)
-
     # '삭감 여부 확인' 버튼 추가
     if st.button("삭감 여부 확인"):
         if user_input:
-            st.subheader("임상 정보 추출 및 임베딩 생성 시작")
+            st.subheader("임베딩 생성 시작")
 
             try:
-                # 1. 임상 정보 추출
-                with st.spinner("임상 정보 추출 중..."):
-                    extracted_info = extract_clinical_info(user_input)
-                    if not extracted_info:
-                        st.error("임상 정보 추출에 실패했습니다.")
-                        return
-
-                st.write("임상 정보 추출 완료!")
-                st.write(extracted_info)
-
-                # 2. 임베딩 생성
+                # 1. 사용자 입력을 바로 임베딩
                 with st.spinner("임베딩 생성 중..."):
-                    embedding = get_structured_embedding(extracted_info)
+                    embedding = get_embedding_from_openai(user_input)
                     if not embedding:
                         st.error("임베딩 생성에 실패했습니다.")
                         return
 
                 st.write("임베딩 생성 완료!")
 
-                # 3. S3에서 임베딩 데이터 로드
+                # 2. S3에서 임베딩 데이터 로드
                 bucket_name = "hemochat-rag-database"
                 file_key = "18_aga_tagged_embedded_data.json"
                 embedded_data = load_data_from_s3(bucket_name, file_key)
                 vectors, metadatas = extract_vectors_and_metadata(embedded_data)
                 st.write("S3 데이터 로드 및 처리 완료!")
 
-                # 4. 코사인 유사도를 계산하여 상위 결과 출력
+                # 3. 코사인 유사도를 계산하여 상위 결과 출력
                 top_results = find_top_n_similar(embedding, vectors, metadatas)
                 st.subheader("상위 유사 항목")
                 for result in top_results:
@@ -206,13 +158,13 @@ def main():
                     st.write(f"요약: {result['메타데이터']['요약']}")
                     st.write("---")
 
-                # 5. 'top_results'의 메타데이터를 'items'로 정의하여 'evaluate_relevance_with_gpt'로 전달
+                # 4. 'top_results'의 메타데이터를 'items'로 정의하여 'evaluate_relevance_with_gpt'로 전달
                 items = [result['메타데이터'] for result in top_results]
                 st.write("evaluate_relevance_with_gpt로 전달된 items:", items)
 
-                # 6. 연관성 평가
+                # 5. 연관성 평가
                 with st.spinner("GPT-4를 사용하여 연관성 평가 중..."):
-                    full_response = evaluate_relevance_with_gpt(extracted_info, items)
+                    full_response = evaluate_relevance_with_gpt(user_input, items)
 
                 if full_response:
                     st.subheader("GPT-4 연관성 평가 결과")
@@ -232,17 +184,18 @@ def main():
                             st.warning(f"항목 {idx}의 점수를 추출하지 못했습니다.")
 
                     if relevant_results:
-                        decisions = []
                         explanations = []
+                        overall_decision = "인정"  # 기본값을 "인정"으로 설정
+
+                        # 프롬프트 템플릿 불러오기
+                        prompt_template = st.secrets["openai"]["prompt_interpretation"]
 
                         with st.spinner("개별 기준에 대한 GPT-4 분석 중..."):
                             for idx, criteria in enumerate(relevant_results, 1):
                                 try:
-                                    # secrets에서 프롬프트 템플릿 불러오기
-                                    prompt_template = st.secrets["openai"]["prompt_interpretation"]
-                                    # 프롬프트 작성 (extracted_info 사용)
+                                    # 프롬프트 작성
                                     prompt = prompt_template.format(
-                                        extracted_info=extracted_info,
+                                        user_input=user_input,
                                         criteria=criteria['세부인정사항']
                                     )
 
@@ -258,8 +211,18 @@ def main():
 
                                     analysis = response['choices'][0]['message']['content'].strip()
                                     explanations.append(f"기준 {idx}에 대한 분석:\n{analysis}")
+
+                                    # 심사 결과 확인
+                                    if analysis.startswith("의료비는 삭감됩니다."):
+                                        overall_decision = "삭감"  # 하나라도 "삭감"이 있으면 전체 결과를 "삭감"으로 설정
                                 except Exception as e:
                                     st.error(f"기준 {idx}에 대한 분석 중 오류 발생: {e}")
+
+                        # 심사 결과 표시
+                        st.subheader("심사 결과")
+                        st.write(overall_decision)
+
+                        # 개별 기준에 대한 분석 결과 표시
                         st.subheader("개별 기준에 대한 GPT-4 분석 결과")
                         st.write("\n\n".join(explanations))
                     else:

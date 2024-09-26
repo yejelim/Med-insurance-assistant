@@ -313,10 +313,9 @@ def main():
                         st.write(overall_decision)
 
                         # 개별 기준에 대한 분석 결과 표시
-                        st.subheader("개별 기준에 대한 GPT-4 분석 결과")
-                        for idx, explanation in enumerate(explanations, 1):
-                            with st.expander(f"기준 {idx}에 대한 분석 보기"):
-                                st.write(explanations)
+                        st.subheader("각 기준에 대한 GPT-4 분석 결과")
+                        with st.expander(f"분석 보기"):
+                            st.write("\n\n".join(explanations))
                     else:
                         st.warning("7점 이상인 항목이 없습니다.")
                 else:

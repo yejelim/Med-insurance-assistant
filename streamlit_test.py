@@ -256,7 +256,7 @@ def main():
 
                 if full_response:
                     st.subheader("GPT-4 연관성 평가 결과")
-                    with st.expander("연관성 평가 상세 보기")
+                    with st.expander("연관성 평가 상세 보기"):
                         st.write(full_response)
 
                     # 7점 이상 항목 필터링 및 개별 기준 분석

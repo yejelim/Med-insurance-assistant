@@ -315,8 +315,8 @@ def main():
                         # 개별 기준에 대한 분석 결과 표시
                         st.subheader("개별 기준에 대한 GPT-4 분석 결과")
                         for explanation in explanations:
-                            with st.expander("개별 분석 보기")
-                            st.write(explanations)
+                            with st.expander("개별 분석 보기"):
+                                st.write(explanations)
                     else:
                         st.warning("7점 이상인 항목이 없습니다.")
                 else:

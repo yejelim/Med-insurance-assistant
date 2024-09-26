@@ -214,7 +214,7 @@ def main():
                                     explanations.append(f"기준 {idx}에 대한 분석:\n{analysis}")
 
                                     # 심사 결과 확인
-                                    if analysis.startswith("의료비는 삭감됩니다."):
+                                    if "의료비는 삭감됩니다." in analysis":
                                         overall_decision = "삭감"  # 하나라도 "삭감"이 있으면 전체 결과를 "삭감"으로 설정
                                 except Exception as e:
                                     st.error(f"기준 {idx}에 대한 분석 중 오류 발생: {e}")

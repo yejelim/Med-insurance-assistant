@@ -9,6 +9,32 @@ from sklearn.metrics.pairwise import cosine_similarity
 # OpenAI API 키 설정 (Streamlit secrets 사용)
 openai.api_key = st.secrets["openai"]["openai_api_key"]
 
+# 사용자 입력을 구조화하는 함수
+def structure_user_input(user_input):
+    try:
+        # 프롬프트 템플릿 불러오기 (secrets 사용)
+        prompt_template = st.secrets["openai"]["prompt_structuring"]
+        # 프롬프트 작성
+        prompt = prompt_template.format(user_input=user_input)
+
+        # GPT-4o-mini 모델 호출
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "당신은 의료 기록을 구조화하는 전문가입니다."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.5,
+        )
+
+        structured_input = response.choices[0].message.content.strip()
+        return structured_input
+
+    except Exception as e:
+        st.error(f"입력 구조화 중 오류 발생: {e}")
+        return None
+
 # 사용자 입력을 임베딩하는 함수
 def get_embedding_from_openai(text):
     response = openai.Embedding.create(
@@ -91,14 +117,14 @@ def find_top_n_similar(embedding, vectors, metadatas, top_n=5):
     return top_results
 
 # GPT-4 모델을 사용하여 연관성 점수를 평가하는 함수
-def evaluate_relevance_with_gpt(user_input, items):
+def evaluate_relevance_with_gpt(structured_input, items):
     try:
         # 프롬프트 템플릿 불러오기 (secrets 사용)
         prompt_template = st.secrets["openai"]["prompt_scoring"]
         # 항목들을 포맷에 맞게 나열
         formatted_items = "\n\n".join([f"항목 {i+1}: {item['요약']}" for i, item in enumerate(items)])
         # 프롬프트 작성
-        prompt = prompt_template.format(user_input=user_input, items=formatted_items)
+        prompt = prompt_template.format(user_input=structured_input, items=formatted_items)
 
         # GPT-4 모델 호출
         response = openai.ChatCompletion.create(
@@ -127,48 +153,111 @@ def main():
     st.subheader("임상노트를 붙여넣으세요.")
     user_input = st.text_area("여기에 텍스트를 입력하세요:", height=500)
 
+    # 사용자 정보 입력
+    st.subheader("환영합니다. 어떤 분야에 종사하시나요?")
+    occupation = st.radio(
+        "직업을 선택하세요:",
+        options=["의사", "간호사", "병원내 청구팀", "기타"],
+        index=0
+    )
+    # '기타'를 선택하면 입력란 표시
+    if occupation == "기타":
+        other_occupation = st.text_input("직업을 입력해주세요:")
+    # 의료인인 경우 분과 선택
+    if occupation in ["의사", "간호사", "병원내 청구팀"]:
+        st.subheader("어떤 분과에 재직 중인지 알려주세요.")
+        department = st.selectbox(
+            "분과를 선택하세요:",
+            options=[
+                "가정의학부 (Family Medicine, FM)",
+                "관상동맥질환 집중치료실 (Coronary Care Unit, CCU)",
+                "내과 (Internal Medicine, IM)",
+                "내과계 중환자실 (Medical Intensive Care Unit, MICU)",
+                "내분비내과 (Endocrinology, ED)",
+                "마취과 (Anesthesiology, AN)",
+                "분만실 (Delivery Room, DR)",
+                "비뇨기과 (Urology, URO)",
+                "산부인과 (Obstetrics/Gynecology, OB/GY)",
+                "성형외과 (Plastic Surgery, PS)",
+                "소아과 (Pediatrics, PD)",
+                "소화기내과 (Gastrointestinal Medicine, GI)",
+                "수술실 (Operating Room, OR)",
+                "신경과 (Neurology, NR)",
+                "신경외과 (Neuro-Surgery, NS)",
+                "신경정신과 (Neuro-Psychiatry, NP)",
+                "신생아중환자실 (Neonatal Intensive Care Unit, NICU)",
+                "신장내과 (Nephrology, NH)",
+                "심장내과 (Cardiovascular Medicine, CV)",
+                "안과 (Ophthalmology, OPH(PT))",
+                "외과계중환자실 (Surgical Intensive Care Unit, SICU)",
+                "응급처치부 (Emergency Service, ER)",
+                "이비인후과 (Ear, Nose & Throat, ENT)",
+                "일반외과 (General Surgery, GS)",
+                "정신과 (Psychiatry, PY)",
+                "정형외과 (Orthopedic Surgery, OS)",
+                "중환자실 (Intensive Care Unit, ICU)",
+                "치과 (Dentistry, DN)",
+                "피부과 (Dermatology, DM)",
+                "혈액종양학과 (Hematology-Oncology, HO)",
+                "회복실 (Postanasthesia Care Unit, PACU)",
+                "흉부내과 (Chest Medicine, CM)",
+                "흉부외과 (Chest Surgery, CS)"
+            ]
+        )
+
     # '삭감 여부 확인' 버튼 추가
     if st.button("삭감 여부 확인"):
         if user_input:
-            st.subheader("임베딩 생성 시작")
+            st.subheader("입력 구조화 및 임베딩 생성 시작")
 
             try:
-                # 1. 사용자 입력을 바로 임베딩
+                # 1. 사용자 입력을 구조화
+                with st.spinner("입력 구조화 중..."):
+                    structured_input = structure_user_input(user_input)
+                    if not structured_input:
+                        st.error("입력 구조화에 실패했습니다.")
+                        return
+
+                st.write("입력 구조화 완료!")
+                st.write(structured_input)
+
+                # 2. 구조화된 입력을 임베딩
                 with st.spinner("임베딩 생성 중..."):
-                    embedding = get_embedding_from_openai(user_input)
+                    embedding = get_embedding_from_openai(structured_input)
                     if not embedding:
                         st.error("임베딩 생성에 실패했습니다.")
                         return
 
                 st.write("임베딩 생성 완료!")
 
-                # 2. S3에서 임베딩 데이터 로드
+                # 3. S3에서 임베딩 데이터 로드
                 bucket_name = "hemochat-rag-database"
                 file_key = "18_aga_tagged_embedded_data.json"
                 embedded_data = load_data_from_s3(bucket_name, file_key)
                 vectors, metadatas = extract_vectors_and_metadata(embedded_data)
-                st.write("S3 데이터 로드 및 처리 완료!")
+                st.write("해당 분과의 급여기준 데이터 로드 완료!")
 
-                # 3. 코사인 유사도를 계산하여 상위 결과 출력
+                # 4. 코사인 유사도를 계산하여 상위 결과 출력
                 top_results = find_top_n_similar(embedding, vectors, metadatas)
                 st.subheader("상위 유사 항목")
-                for result in top_results:
-                    st.write(f"유사도: {result['유사도']:.4f}")
-                    st.write(f"제목: {result['메타데이터']['제목']}")
-                    st.write(f"요약: {result['메타데이터']['요약']}")
-                    st.write("---")
+                for ids, result in enumerate(top_results, 1):
+                    with st.expander(f"항목 {idx} - {result['메타데이터']['제목']}"):
+                        # st.write(f"유사도: {result['유사도']:.4f}")
+                        st.write(f"제목: {result['메타데이터']['제목']}")
+                        st.write(f"요약: {result['메타데이터']['요약']}")
 
-                # 4. 'top_results'의 메타데이터를 'items'로 정의하여 'evaluate_relevance_with_gpt'로 전달
+                # 5. 'top_results'의 메타데이터를 'items'로 정의하여 'evaluate_relevance_with_gpt'로 전달
                 items = [result['메타데이터'] for result in top_results]
                 # st.write("evaluate_relevance_with_gpt로 전달된 items:", items)
 
-                # 5. 연관성 평가
+                # 6. 연관성 평가
                 with st.spinner("GPT-4를 사용하여 연관성 평가 중..."):
-                    full_response = evaluate_relevance_with_gpt(user_input, items)
+                    full_response = evaluate_relevance_with_gpt(structured_input, items)
 
                 if full_response:
                     st.subheader("GPT-4 연관성 평가 결과")
-                    st.write(full_response)
+                    with st.expander("연관성 평가 상세 보기")
+                        st.write(full_response)
 
                     # 7점 이상 항목 필터링 및 개별 기준 분석
                     relevant_results = []
@@ -190,12 +279,12 @@ def main():
                         # 프롬프트 템플릿 불러오기
                         prompt_template = st.secrets["openai"]["prompt_interpretation"]
 
-                        with st.spinner("개별 기준에 대한 GPT-4 분석 중..."):
+                        with st.spinner("개별 기준에 대한 분석 중..."):
                             for idx, criteria in enumerate(relevant_results, 1):
                                 try:
                                     # 프롬프트 작성
                                     prompt = prompt_template.format(
-                                        user_input=user_input,
+                                        user_input=user_input,  # 원문 텍스트 사용
                                         criteria=criteria['세부인정사항']
                                     )
 
@@ -225,7 +314,9 @@ def main():
 
                         # 개별 기준에 대한 분석 결과 표시
                         st.subheader("개별 기준에 대한 GPT-4 분석 결과")
-                        st.write("\n\n".join(explanations))
+                        for explanation in explanations:
+                            with st.expander("개별 분석 보기")
+                            st.write(explanations)
                     else:
                         st.warning("7점 이상인 항목이 없습니다.")
                 else:

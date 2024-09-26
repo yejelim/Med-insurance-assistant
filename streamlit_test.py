@@ -240,7 +240,7 @@ def main():
                 # 4. 코사인 유사도를 계산하여 상위 결과 출력
                 top_results = find_top_n_similar(embedding, vectors, metadatas)
                 st.subheader("상위 유사 항목")
-                for ids, result in enumerate(top_results, 1):
+                for idx, result in enumerate(top_results, 1):
                     with st.expander(f"항목 {idx} - {result['메타데이터']['제목']}"):
                         # st.write(f"유사도: {result['유사도']:.4f}")
                         st.write(f"제목: {result['메타데이터']['제목']}")

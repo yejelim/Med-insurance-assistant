@@ -90,8 +90,8 @@ def extract_vectors_and_metadata(embedded_data):
             st.warning(f"비정상적인 데이터 형식의 아이템 발견 (인덱스 {idx}): {item}")
     
     # 최종적으로 추출된 데이터 구조 확인
-    st.write("추출된 벡터의 수:", len(vectors))
-    st.write("추출된 메타데이터의 수:", len(metadatas))
+    # st.write("추출된 벡터의 수:", len(vectors))
+    # st.write("추출된 메타데이터의 수:", len(metadatas))
     
     return vectors, metadatas
 

@@ -24,7 +24,7 @@ def structure_user_input(user_input):
                 {"role": "system", "content": "당신은 의료 기록을 구조화하는 전문가입니다."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1000,
+            max_tokens=5000,
             temperature=0.5,
         )
 
@@ -294,7 +294,7 @@ def main():
                                             {"role": "system", "content": "당신은 의료 문서를 분석하는 전문가입니다."},
                                             {"role": "user", "content": prompt}
                                         ],
-                                        max_tokens=1000,
+                                        max_tokens=10000,
                                         temperature=0.3,
                                     )
 

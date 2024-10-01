@@ -5,6 +5,7 @@ Secrets.txt
 environment.yml
 *.pkl
 *.csv
+test_code/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

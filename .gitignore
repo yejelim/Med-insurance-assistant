@@ -10,6 +10,7 @@ surgery/merged_data.json
 __pycache__/
 *.py[cod]
 *$py.class
+test_code/
 
 # C extensions
 *.so
